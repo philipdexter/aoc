@@ -5,13 +5,8 @@ IN: 1
 
 : valid-passphrase-2 ( arr -- ? ) [ natural-sort ] map all-unique? ;
 
-: bool>int ( ? -- x ) {
-        { f [ 0 ] }
-        { t [ 1 ] }
-    } case ;
-
 : solve ( -- )
     lines [ " " split ] map
-    [ valid-passphrase-2 bool>int ] map sum . ;
+    0 swap [ valid-passphrase-1 1 0 ? + ] each . ;
 
 MAIN: solve
