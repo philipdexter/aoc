@@ -1,0 +1,135 @@
+
+with open('1.txt') as f:
+  input = f.readlines()
+
+input = [line.strip() for line in input]
+
+# input = ['#########',
+#          '#b.A.@.a#',
+#          '#########',]
+
+# input = [
+#   '########################',
+#   '#f.D.E.e.C.b.A.@.a.B.c.#',
+#   '######################.#',
+#   '#d.....................#',
+#   '########################',
+# ]
+
+# input = [
+#   '########################',
+#   '#...............b.C.D.f#',
+#   '#.######################',
+#   '#.....@.a.B.c.d.A.e.F.g#',
+#   '########################',
+# ]
+
+# input = [
+#   '#################',
+#   '#i.G..c...e..H.p#',
+#   '########.########',
+#   '#j.A..b...f..D.o#',
+#   '########@########',
+#   '#k.E..a...g..B.n#',
+#   '########.########',
+#   '#l.F..d...h..C.m#',
+#   '#################',
+# ]
+
+# input = [
+#   '########################',
+#   '#@..............ac.GI.b#',
+#   '###d#e#f################',
+#   '###A#B#C################',
+#   '###g#h#i################',
+#   '########################',
+# ]
+
+pos = None
+items = {}
+for y in range(len(input)):
+  for x in range(len(input[y])):
+    if input[y][x] == '@':
+      pos = (x, y)
+    items[(x, y)] = input[y][x]
+
+def is_door(c):
+  return c >= 'A' and c <= 'Z'
+
+def is_key(c):
+  return c >= 'a' and c <= 'z'
+
+def dirs_of(p):
+  return [(p[0], p[1] + 1),
+          (p[0], p[1] - 1),
+          (p[0] + 1, p[1]),
+          (p[0] - 1, p[1]),]
+
+keys = {}
+for k in items:
+  if is_key(items[k]):
+    keys[items[k]] = k
+
+def steps_to_locks(items, start, end):
+
+  STACK = [(start, end, 0, [], [])]
+
+  res = []
+
+  while STACK:
+    start, end, total_steps, locks, been = STACK.pop()
+
+    if start == end:
+      res.append((locks, total_steps))
+      continue
+
+    i = items.get(start)
+    if is_door(i):
+      locks = locks + [i.lower()]
+    elif not is_key(i):
+      if i not in ['.', '@']:
+        continue
+
+    been_now = been + [start]
+    for d in dirs_of(start):
+      if d not in been:
+        if items.get(d) != '#':
+          STACK.append((d, end, total_steps+1, locks, been_now))
+
+  return res
+
+dist_locks = {}
+for end in keys:
+  dist_locks[('start', end)] = steps_to_locks(items, pos, keys[end])
+for start in keys:
+  for end in keys:
+    if start == end:
+      continue
+    dist_locks[(start, end)] = steps_to_locks(items, keys[start], keys[end])
+
+def can_access(start, unlocked):
+  return [(path[1], way[1])
+          for path, ways in dist_locks.items()
+          if path[0] == start
+          for way in ways
+          if all([r in unlocked for r in way[0]])]
+
+CACHE = {}
+def step(start, unlocked):
+
+  state_hash = (start, str(sorted(unlocked)))
+  if state_hash in CACHE:
+    return CACHE[state_hash]
+
+  ca = [(k, s) for k, s in can_access(start, unlocked) if k not in unlocked]
+  if not ca:
+    return 0
+  options = []
+  for k, s in ca:
+    options.append(s + step(k, unlocked + [k]))
+
+  res = min(options)
+  CACHE[state_hash] = res
+  return res
+
+print(step('start', []))
