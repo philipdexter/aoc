@@ -4,3 +4,7 @@
     (vec (line-seq rdr))))
 
 (defn to-int [x] (Integer/parseInt x))
+
+(def input (file-lines "1.txt"))
+
+(require '[clojure.string :as str])
