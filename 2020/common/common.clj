@@ -5,6 +5,8 @@
 
 (defn to-int [x] (Integer/parseInt x))
 
+(defn abs [x] (if (< 0 x) x (- x)))
+
 (def input (file-lines "1.txt"))
 
 (require '[clojure.string :as str])
